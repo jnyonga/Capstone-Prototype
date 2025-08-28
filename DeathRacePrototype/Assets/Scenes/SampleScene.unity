@@ -547,8 +547,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c88d826ae68bc04b8b3754f727b8f0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSmoothness: 5
-  rotSmoothness: 7
+  moveSmoothness: 25
+  rotSmoothness: 10
   moveOffset: {x: 0, y: 2, z: -6}
   rotOffset: {x: 0, y: 2, z: 0}
   carTarget: {fileID: 1729313780}
@@ -760,7 +760,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 2
+  m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
