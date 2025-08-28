@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using TMPro;
 
 public class CarController : MonoBehaviour
 {
@@ -19,15 +20,34 @@ public class CarController : MonoBehaviour
         public Axel axel;
     }
 
+    [Header("Performance")]
     public float maxAcceleration = 5.0f;
+    public float maxSpeed = 25.0f; // m/s
     public float brakeAcceleration = 50.0f;
 
+    [Header("Steering")]
     public float turnSensitivity = 1.0f;
     public float maxSteerAngle = 30.0f;
 
+    [Header("Jump")]
+    public float jumpForce = 500.0f;
+    public KeyCode jumpKey = KeyCode.E;
+    public float jumpCooldown = 1.0f;
+
+    [Header("Physics")]
     public Vector3 _centerOfMass;
 
+    [Header("Wheels")]
     public List<Wheel> wheels;
+
+    [Header("Speed Info (Read Only)")]
+    public float currentSpeed; //in m/s
+    public float currentSpeedMPH; //speed in mp/h for guage
+    public TextMeshProUGUI speedGauge;
+
+    [Header("Jump Info (Read Only)")]
+    public bool isGrounded;
+    public float lastJumpTime;
 
     float moveInput;
     float steerInput;
@@ -42,7 +62,10 @@ public class CarController : MonoBehaviour
     void Update()
     {
         GetInputs();
+        UpdateSpeedInfo();
+        CheckGrounded();
         Animatewheels();
+        Jump();
     }
 
     void FixedUpdate()
@@ -50,6 +73,7 @@ public class CarController : MonoBehaviour
         Move();
         Steer();
         Brake();
+        
     }
 
     void GetInputs()
@@ -58,12 +82,56 @@ public class CarController : MonoBehaviour
         steerInput = Input.GetAxis("Horizontal");
     }
 
-    void Move()
+    void UpdateSpeedInfo()
     {
+        currentSpeed = carRb.linearVelocity.magnitude;
+        currentSpeedMPH = currentSpeed * 2.237f; //conversion
+        speedGauge.text = Mathf.Round(currentSpeedMPH).ToString() + " MPH";
+    }
+
+    void CheckGrounded()
+    {
+        isGrounded = true;
         foreach(var wheel in wheels)
         {
-            wheel.wheelCollider.motorTorque = moveInput * maxAcceleration * 100;
+            if(!wheel.wheelCollider.isGrounded)
+            {
+                isGrounded = false;
+                break;
+            }
         }
+    }
+
+    void Jump()
+    {
+        if(Input.GetKeyDown(jumpKey) && isGrounded && CanJump())
+        {
+            carRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            lastJumpTime = Time.time;
+        }
+    }
+
+    bool CanJump()
+    {
+        return Time.time - lastJumpTime > jumpCooldown;
+    }
+    void Move()
+    {
+        if(currentSpeed < maxSpeed)
+        {
+            foreach (var wheel in wheels)
+            {
+                wheel.wheelCollider.motorTorque = moveInput * maxAcceleration * 100;
+            }
+        }
+        else
+        {
+            foreach (var wheel in wheels)
+            {
+                wheel.wheelCollider.motorTorque = 0;
+            }
+        }
+        
     }
 
     void Steer()
@@ -84,7 +152,7 @@ public class CarController : MonoBehaviour
         {
             foreach(var wheel in wheels)
             {
-                wheel.wheelCollider.brakeTorque = 300 * brakeAcceleration;
+                wheel.wheelCollider.brakeTorque = 100 * brakeAcceleration;
             }
         }
         else
