@@ -117,16 +117,24 @@ public class CarController : MonoBehaviour
     }
     void Move()
     {
-        if(currentSpeed < maxSpeed)
+        foreach (var wheel in wheels)
         {
-            foreach (var wheel in wheels)
+            if (moveInput > 0)
+            {
+                if (currentSpeed < maxSpeed)
+                {
+                    wheel.wheelCollider.motorTorque = moveInput * maxAcceleration * 100;
+                }
+                else
+                {
+                    wheel.wheelCollider.motorTorque = moveInput * maxAcceleration * 20;
+                }
+            }
+            else if (moveInput < 0)
             {
                 wheel.wheelCollider.motorTorque = moveInput * maxAcceleration * 100;
             }
-        }
-        else
-        {
-            foreach (var wheel in wheels)
+            else
             {
                 wheel.wheelCollider.motorTorque = 0;
             }
