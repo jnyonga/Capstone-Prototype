@@ -4083,8 +4083,11 @@ MonoBehaviour:
   turnSensitivity: 1
   maxSteerAngle: 30
   jumpForce: 15000
-  jumpKey: 101
-  jumpCooldown: 1
+  jumpKey: 102
+  jumpCooldown: 3
+  airSteerForce: 20000
+  airAcceleration: 50
+  enableAirAcceleration: 1
   _centerOfMass: {x: 0, y: 0, z: 0}
   wheels:
   - wheelModel: {fileID: 118846599}
