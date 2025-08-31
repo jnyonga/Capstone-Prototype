@@ -21,7 +21,16 @@ public class ModuleSystem : MonoBehaviour
     public GameObject selectedPart;
     public bool hasPartWaiting = false;
 
+    [Header("Socket Contents")]
+    [SerializeField] private GameObject leftSocketContent;
+    [SerializeField] private GameObject rightSocketContent;
+    [SerializeField] private GameObject frontSocketContent;
+    [SerializeField] private GameObject backSocketContent;
+
     public bool destroyOriginalPart = true;
+
+    // Dictionary for easy access to socket contents
+    private Dictionary<string, GameObject> socketContents;
 
     private void Start()
     {
@@ -29,7 +38,54 @@ public class ModuleSystem : MonoBehaviour
         rightModule.enabled = false;
         frontModule.enabled = false;
         backModule.enabled = false;
+
+        // Initialize the dictionary
+        InitializeSocketTracking();
     }
+
+    private void InitializeSocketTracking()
+    {
+        socketContents = new Dictionary<string, GameObject>
+        {
+            ["Left"] = null,
+            ["Right"] = null,
+            ["Front"] = null,
+            ["Back"] = null
+        };
+
+        // Check if sockets already have parts at start (for persistence)
+        CheckExistingSocketContents();
+    }
+
+    private void CheckExistingSocketContents()
+    {
+        leftSocketContent = GetSocketContent(leftSocket);
+        rightSocketContent = GetSocketContent(rightSocket);
+        frontSocketContent = GetSocketContent(frontSocket);
+        backSocketContent = GetSocketContent(backSocket);
+
+        // Update dictionary
+        socketContents["Left"] = leftSocketContent;
+        socketContents["Right"] = rightSocketContent;
+        socketContents["Front"] = frontSocketContent;
+        socketContents["Back"] = backSocketContent;
+
+        // Update UI accordingly
+        leftModule.enabled = leftSocketContent != null;
+        rightModule.enabled = rightSocketContent != null;
+        frontModule.enabled = frontSocketContent != null;
+        backModule.enabled = backSocketContent != null;
+    }
+
+    private GameObject GetSocketContent(GameObject socket)
+    {
+        if (socket != null && socket.transform.childCount > 0)
+        {
+            return socket.transform.GetChild(0).gameObject;
+        }
+        return null;
+    }
+
     private void Update()
     {
         if (hasPartWaiting && selectedPart != null)
@@ -38,18 +94,18 @@ public class ModuleSystem : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!hasPartWaiting && collision.gameObject.CompareTag("Part"))
+        if (!hasPartWaiting && other.gameObject.CompareTag("Part"))
         {
-            selectedPart = collision.gameObject;
+            selectedPart = other.gameObject;
             hasPartWaiting = true;
 
-            Debug.Log($"Got Part: {selectedPart.name}! Press 1 for Left, 2 for Right, 3 for Light socket.");
+            Debug.Log($"Got Part: {selectedPart.name}! Press 1 for Left, 2 for Right, 3 for Front, 4 for Back socket.");
 
             if (destroyOriginalPart)
             {
-                selectedPart.SetActive(false); 
+                selectedPart.SetActive(false);
             }
         }
     }
@@ -59,26 +115,18 @@ public class ModuleSystem : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             SlotPart(leftSocket, "Left");
-
-            leftModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             SlotPart(rightSocket, "Right");
-
-            rightModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             SlotPart(frontSocket, "Front");
-
-            frontModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             SlotPart(backSocket, "Back");
-
-            backModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -101,15 +149,17 @@ public class ModuleSystem : MonoBehaviour
             return;
         }
 
-        // Check if socket already has a part
-        if (socket.transform.childCount > 0)
+        // Check if socket already has a part and remove it
+        if (socketContents[socketName] != null)
         {
             Debug.Log($"{socketName} socket already occupied! Replacing part.");
-            // Destroy existing part in socket
-            for (int i = socket.transform.childCount - 1; i >= 0; i--)
-            {
-                DestroyImmediate(socket.transform.GetChild(i).gameObject);
-            }
+            GameObject oldPart = socketContents[socketName];
+
+            // Remove from socket tracking
+            UpdateSocketContent(socketName, null);
+
+            // Destroy the old part
+            DestroyImmediate(oldPart);
         }
 
         // Create the part in the socket
@@ -128,6 +178,9 @@ public class ModuleSystem : MonoBehaviour
         Collider col = newPart.GetComponent<Collider>();
         if (col != null) col.isTrigger = true; // Keep collider but make it trigger
 
+        // Update tracking
+        UpdateSocketContent(socketName, newPart);
+
         Debug.Log($"Part '{selectedPart.name}' slotted into {socketName} socket!");
 
         // Clean up
@@ -137,6 +190,33 @@ public class ModuleSystem : MonoBehaviour
         }
 
         ResetPartSelection();
+    }
+
+    void UpdateSocketContent(string socketName, GameObject newContent)
+    {
+        // Update dictionary
+        socketContents[socketName] = newContent;
+
+        // Update serialized fields for inspector visibility
+        switch (socketName)
+        {
+            case "Left":
+                leftSocketContent = newContent;
+                leftModule.enabled = newContent != null;
+                break;
+            case "Right":
+                rightSocketContent = newContent;
+                rightModule.enabled = newContent != null;
+                break;
+            case "Front":
+                frontSocketContent = newContent;
+                frontModule.enabled = newContent != null;
+                break;
+            case "Back":
+                backSocketContent = newContent;
+                backModule.enabled = newContent != null;
+                break;
+        }
     }
 
     void CancelPartSelection()
@@ -156,5 +236,50 @@ public class ModuleSystem : MonoBehaviour
     {
         selectedPart = null;
         hasPartWaiting = false;
+    }
+
+    // Public methods to access socket contents
+    public GameObject GetSocketContent(string socketName)
+    {
+        if (socketContents.ContainsKey(socketName))
+        {
+            return socketContents[socketName];
+        }
+        return null;
+    }
+
+    public bool IsSocketOccupied(string socketName)
+    {
+        return GetSocketContent(socketName) != null;
+    }
+
+    public List<GameObject> GetAllSocketContents()
+    {
+        List<GameObject> contents = new List<GameObject>();
+        foreach (var content in socketContents.Values)
+        {
+            if (content != null)
+            {
+                contents.Add(content);
+            }
+        }
+        return contents;
+    }
+
+    public Dictionary<string, GameObject> GetSocketContentsDictionary()
+    {
+        return new Dictionary<string, GameObject>(socketContents);
+    }
+
+    // Method to manually remove a part from a socket
+    public void RemovePartFromSocket(string socketName)
+    {
+        if (socketContents.ContainsKey(socketName) && socketContents[socketName] != null)
+        {
+            GameObject partToRemove = socketContents[socketName];
+            UpdateSocketContent(socketName, null);
+            Destroy(partToRemove);
+            Debug.Log($"Removed part from {socketName} socket.");
+        }
     }
 }
