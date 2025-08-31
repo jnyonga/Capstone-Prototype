@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ModuleSystem : MonoBehaviour
 {
@@ -10,12 +11,25 @@ public class ModuleSystem : MonoBehaviour
     public GameObject frontSocket;
     public GameObject backSocket;
 
+    [Header("UI")]
+    public Image leftModule;
+    public Image rightModule;
+    public Image frontModule;
+    public Image backModule;
+
     [Header("Current State")]
     public GameObject selectedPart;
     public bool hasPartWaiting = false;
 
     public bool destroyOriginalPart = true;
 
+    private void Start()
+    {
+        leftModule.enabled = false;
+        rightModule.enabled = false;
+        frontModule.enabled = false;
+        backModule.enabled = false;
+    }
     private void Update()
     {
         if (hasPartWaiting && selectedPart != null)
@@ -45,18 +59,26 @@ public class ModuleSystem : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             SlotPart(leftSocket, "Left");
+
+            leftModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             SlotPart(rightSocket, "Right");
+
+            rightModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             SlotPart(frontSocket, "Front");
+
+            frontModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             SlotPart(backSocket, "Back");
+
+            backModule.enabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Escape))
         {
