@@ -60,6 +60,7 @@ public class CarController : MonoBehaviour
 
     [Header("Physics")]
     public Vector3 _centerOfMass;
+    public float groundMagnetism = 1.5f;
 
     [Header("Wheels")]
     public List<Wheel> wheels;
@@ -104,6 +105,8 @@ public class CarController : MonoBehaviour
         AirControl();
         ManageDriftAngle();
 
+        float groundForce = currentSpeed * groundMagnetism * 100f;
+        carRb.AddForce(Vector3.down * groundForce);
     }
 
     void GetInputs()
