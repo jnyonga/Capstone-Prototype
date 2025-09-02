@@ -9,13 +9,17 @@ public class TrickController : MonoBehaviour
         InTrick
     }
 
-    private TrickState currentState;
+    
+    [Header("Trick Buttons")]
     public KeyCode kickflipButton;
     public KeyCode heelflipButton;
     public KeyCode treflipButton;
     public KeyCode laserflipButton;
-    [SerializeField] private Animator carAnimator;
 
+    [Header("Car State")]
+    [SerializeField] private Animator carAnimator;
+    [SerializeField] private BoxCollider carHitbox;
+    private TrickState currentState;
     private bool isGrounded;
     private float groundedDistance = 0.7f;
 
@@ -25,6 +29,7 @@ public class TrickController : MonoBehaviour
     void Start()
     {
         carRB = GetComponent<Rigidbody>();
+        carHitbox.enabled = false;
         currentState = TrickState.Normal;
     }
 
@@ -42,6 +47,7 @@ public class TrickController : MonoBehaviour
         if (currentState != TrickState.InTrick && Physics.Raycast(transform.position + (Vector3.up * 0.5f), Vector3.down, groundedDistance))
         {
             isGrounded = true;
+            carHitbox.enabled = false;
         }
     }
 
@@ -74,22 +80,25 @@ public class TrickController : MonoBehaviour
     private IEnumerator DoTrick(string trickName)
     {
         currentState = TrickState.InTrick;
-        Debug.Log("In trick");
+        
         // Pop car up
         carRB.AddForce(transform.up * 15000, ForceMode.Impulse);
 
-        yield return new WaitForSeconds(0.2f);
+        // Add trick specific forces
+        if (trickName == "CarKickflip")
+            carRB.AddForce(-transform.right * 7500, ForceMode.Impulse);
+        if (trickName == "CarHeelflip")
+            carRB.AddForce(transform.right * 7500, ForceMode.Impulse);
 
         // Perform trick
         carAnimator.Play(trickName);
 
-        yield return new WaitForSeconds(1.1f);
+        yield return new WaitForSeconds(0.1f);
+
+        carHitbox.enabled = true;
+
+        yield return new WaitForSeconds(1.0f); //Time adds up to 1.1 which is animation length
 
         currentState = TrickState.Normal;
-    }
-
-    private void UpdateState()
-    {
-
     }
 }
