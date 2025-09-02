@@ -11,6 +11,9 @@ public class TrickController : MonoBehaviour
 
     private TrickState currentState;
     public KeyCode kickflipButton;
+    public KeyCode heelflipButton;
+    public KeyCode treflipButton;
+    public KeyCode laserflipButton;
     [SerializeField] private Animator carAnimator;
 
     private bool isGrounded;
@@ -44,22 +47,41 @@ public class TrickController : MonoBehaviour
 
     private void CheckInput()
     {
-        if (Input.GetKeyDown(kickflipButton) && isGrounded && currentState != TrickState.InTrick)
+        if (isGrounded && currentState != TrickState.InTrick)
         {
-            StartCoroutine(DoTrick());
+            if (Input.GetKeyDown(kickflipButton))
+            {
+                StartCoroutine(DoTrick("CarKickflip"));
+            }
+
+            else if (Input.GetKeyDown(heelflipButton))
+            {
+                StartCoroutine(DoTrick("CarHeelflip"));
+            }
+
+            else if (Input.GetKeyDown(treflipButton))
+            {
+                StartCoroutine(DoTrick("CarTreflip"));
+            }
+
+            else if (Input.GetKeyDown(laserflipButton))
+            {
+                StartCoroutine(DoTrick("CarLaserflip"));
+            }
         }
     }
 
-    private IEnumerator DoTrick()
+    private IEnumerator DoTrick(string trickName)
     {
         currentState = TrickState.InTrick;
         Debug.Log("In trick");
         // Pop car up
-        carRB.AddForce(Vector3.up * 15000, ForceMode.Impulse);
+        carRB.AddForce(transform.up * 15000, ForceMode.Impulse);
 
         yield return new WaitForSeconds(0.2f);
 
-        carAnimator.Play("CarKickflip");
+        // Perform trick
+        carAnimator.Play(trickName);
 
         yield return new WaitForSeconds(1.1f);
 

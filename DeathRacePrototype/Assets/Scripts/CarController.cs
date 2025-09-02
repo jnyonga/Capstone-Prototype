@@ -256,8 +256,8 @@ public class CarController : MonoBehaviour
         {
             if(Mathf.Abs(steerInput) > 0.1f)
             {
-                Vector3 strafeForce = transform.right * steerInput * airAcceleration;
-                carRb.AddForce(strafeForce);
+                Vector3 strafeForce = transform.up * steerInput * airSteerForce;
+                carRb.AddTorque(strafeForce);
             }
             float rollInput = 0f;
             if (Input.GetKey(KeyCode.E))
