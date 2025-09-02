@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Part
   - Wall
+  - CarHitbox
   layers:
   - Default
   - TransparentFX
